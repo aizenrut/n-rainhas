@@ -32,7 +32,6 @@ namespace NRainhas
 
         private int ObterTotalConflitos(byte[] vetor)
         {
-            vetor = new byte[] { 3, 0, 2, 1 };
             var conflitos = 0;
 
             for (int i = 0; i < vetor.Length; i++)
