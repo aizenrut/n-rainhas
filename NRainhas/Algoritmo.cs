@@ -1,20 +1,48 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿//Alunos: Igor Christofer Eisenhut e
+//        Manoella Marcondes Junkes
+using System;
 
 namespace NRainhas
 {
     public class Algoritmo
     {
+        private const int MULTIPLICADOR_TENTATIVAS = 50_000;
+        private const int MAXIMO_TENTATIVAS = 1_000_000;
         private Random random = new();
 
-        public byte[] EncontrarSolucao(byte tamanhoTabuleiro)
+        public (byte[] cenarioInicial, byte[] solucao) EncontrarSolucao(byte tamanhoTabuleiro)
         {
             var vetorInicial = GerarPosicionamentoInicial(tamanhoTabuleiro);
+            var vetor = new byte[tamanhoTabuleiro];
+            vetorInicial.CopyTo(vetor, 0);
 
-            var totalConflitos = ObterTotalConflitos(vetorInicial);
+            var totalConflitos = int.MaxValue;
+            var quantidadeMaximaTentativas = Math.Max(tamanhoTabuleiro * MULTIPLICADOR_TENTATIVAS, MAXIMO_TENTATIVAS);
+            var quantidadeTentativas = 0;
 
-            return vetorInicial;
+            do
+            {
+                var xAleatorio = GerarPosicaoAleatoria(tamanhoTabuleiro);
+                var yAleatorio = GerarPosicaoAleatoria(tamanhoTabuleiro);
+
+                var vetorTeste = vetor;
+                vetorTeste[xAleatorio] = yAleatorio;
+
+                var totalConflitosTeste = ObterTotalConflitos(vetorTeste);
+
+                if (totalConflitosTeste < totalConflitos)
+                {
+                    vetor = vetorTeste;
+                    totalConflitos = totalConflitosTeste;
+                }
+            } while (totalConflitos != 0 && ++quantidadeTentativas < quantidadeMaximaTentativas);
+
+            if (quantidadeTentativas == quantidadeMaximaTentativas)
+            {
+                throw new Exception("Não foi possível encontrar uma solução. Por favor, tente novamente ou reduza o tamanho do tabuleiro");
+            }
+
+            return (vetorInicial, vetor);
         }
 
         private byte[] GerarPosicionamentoInicial(byte tamanhoTabuleiro)
@@ -23,11 +51,16 @@ namespace NRainhas
 
             for (int i = 0; i < tamanhoTabuleiro; i++)
             {
-                var numeroAleatorio = (byte)random.Next(0, tamanhoTabuleiro);
+                var numeroAleatorio = GerarPosicaoAleatoria(tamanhoTabuleiro);
                 vetor[i] = numeroAleatorio;
             }
 
             return vetor;
+        }
+
+        private byte GerarPosicaoAleatoria(byte tamanhoTabuleiro)
+        {
+            return (byte)random.Next(0, tamanhoTabuleiro);
         }
 
         private int ObterTotalConflitos(byte[] vetor)
@@ -76,7 +109,6 @@ namespace NRainhas
                         conflitos++;
                     }
 
-                    Console.WriteLine($"[{xDiagonalSecundaria}][{yDiagonalSecundaria}]");
                     xDiagonalSecundaria++;
                     yDiagonalSecundaria--;
                 }
